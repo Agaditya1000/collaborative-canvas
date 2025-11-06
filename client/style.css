@@ -433,6 +433,17 @@ body {
     transform: translateY(-2px);
 }
 
+@keyframes slideOutUp {
+    from {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+    }
+}
+
 @keyframes slideInUp {
     from {
         transform: translateY(20px);
