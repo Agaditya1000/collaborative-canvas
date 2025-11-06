@@ -9,40 +9,137 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>Collaborative Drawing Canvas</h1>
+            <div class="header-content">
+                <h1 class="logo">🎨 Collaborative Canvas</h1>
+                <div class="header-badge">
+                    <span class="live-indicator"></span>
+                    <span>Live Collaboration</span>
+                </div>
+            </div>
             <div class="user-info">
-                <span id="userCount">0 users online</span>
-                <span id="userId"></span>
+                <div class="user-count-badge">
+                    <span class="user-icon">👥</span>
+                    <span id="userCount">0 users online</span>
+                </div>
+                <div id="userId" class="user-id-badge"></div>
             </div>
         </header>
 
-        <div class="toolbar">
-            <div class="tools">
-                <button id="brushTool" class="tool active" data-tool="brush">🖌️ Brush</button>
-                <button id="eraserTool" class="tool" data-tool="eraser">🧽 Eraser</button>
-                <button id="clearCanvas" class="tool danger">🗑️ Clear</button>
-            </div>
-            
-            <div class="color-picker">
-                <input type="color" id="colorPicker" value="#000000">
-                <input type="range" id="brushSize" min="1" max="50" value="5">
-                <span id="brushSizeValue">5px</span>
+        <div class="main-content">
+            <!-- Left Sidebar - Tools Panel -->
+            <div class="sidebar">
+                <div class="tools-panel">
+                    <h3>🛠️ Drawing Tools</h3>
+                    
+                    <div class="tool-group">
+                        <label>Tools:</label>
+                        <div class="tools">
+                            <button id="brushTool" class="tool active" data-tool="brush" title="Brush Tool (B)">
+                                🖌️ Brush
+                            </button>
+                            <button id="eraserTool" class="tool" data-tool="eraser" title="Eraser Tool (E)">
+                                🧽 Eraser
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tool-group">
+                        <label for="colorPicker">Color:</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="colorPicker" value="#000000" title="Select drawing color">
+                            <div class="color-preview" id="colorPreview"></div>
+                            <span class="color-hex" id="colorHex">#000000</span>
+                        </div>
+                    </div>
+
+                    <div class="tool-group">
+                        <label for="brushSize">Brush Size: <span id="brushSizeValue" class="size-badge">5px</span></label>
+                        <div class="slider-wrapper">
+                            <input type="range" id="brushSize" min="1" max="50" value="5" title="Adjust brush size (1-9 keys)">
+                            <div class="slider-track"></div>
+                        </div>
+                        <div class="size-preview" id="sizePreview"></div>
+                    </div>
+
+                    <div class="tool-group">
+                        <label>Actions:</label>
+                        <div class="actions">
+                            <button id="undoBtn" class="tool" title="Undo (Ctrl+Z)">
+                                ↩️ Undo
+                            </button>
+                            <button id="redoBtn" class="tool" title="Redo (Ctrl+Y)">
+                                ↪️ Redo
+                            </button>
+                            <button id="clearCanvas" class="tool danger" title="Clear entire canvas">
+                                🗑️ Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Panel -->
+                <div class="users-panel">
+                    <h3>👥 Online Users</h3>
+                    <div id="usersList" class="users-list">
+                        <!-- Users will be populated here -->
+                    </div>
+                </div>
             </div>
 
-            <div class="actions">
-                <button id="undoBtn" class="tool">↩️ Undo</button>
-                <button id="redoBtn" class="tool">↪️ Redo</button>
+            <!-- Main Drawing Area -->
+            <div class="drawing-area">
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="drawingCanvas"></canvas>
+                    <canvas id="cursorCanvas"></canvas>
+                    
+                    <!-- Drawing Instructions -->
+                    <div class="drawing-instructions" id="instructions">
+                        <div class="instruction-header">
+                            <span>💡 Quick Tips</span>
+                            <button class="close-instructions" id="closeInstructions">×</button>
+                        </div>
+                        <div class="instruction-item">🖱️ Click and drag to draw</div>
+                        <div class="instruction-item">👥 See others draw in real-time</div>
+                        <div class="instruction-item">⌨️ B=Brush, E=Eraser, 1-9=Size</div>
+                        <div class="instruction-item">🎨 Use color swatches for quick selection</div>
+                    </div>
+                    
+                    <!-- Drawing Stats -->
+                    <div class="drawing-stats" id="drawingStats">
+                        <div class="stat-item">
+                            <span class="stat-label">Strokes:</span>
+                            <span class="stat-value" id="strokeCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Active:</span>
+                            <span class="stat-value" id="activeStrokes">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Bar -->
+                <div class="quick-actions">
+                    <button id="quickBrush" class="quick-action active" data-tool="brush" title="Brush">
+                        🖌️
+                    </button>
+                    <button id="quickEraser" class="quick-action" data-tool="eraser" title="Eraser">
+                        🧽
+                    </button>
+                    <div class="color-swatches">
+                        <div class="color-swatch" style="background-color: #000000;" data-color="#000000" title="Black"></div>
+                        <div class="color-swatch" style="background-color: #ff0000;" data-color="#ff0000" title="Red"></div>
+                        <div class="color-swatch" style="background-color: #0000ff;" data-color="#0000ff" title="Blue"></div>
+                        <div class="color-swatch" style="background-color: #00ff00;" data-color="#00ff00" title="Green"></div>
+                        <div class="color-swatch" style="background-color: #ffff00;" data-color="#ffff00" title="Yellow"></div>
+                        <div class="color-swatch" style="background-color: #ff00ff;" data-color="#ff00ff" title="Magenta"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="canvas-container">
-            <canvas id="drawingCanvas"></canvas>
-            <canvas id="cursorCanvas"></canvas>
-        </div>
-
-        <div class="users-panel">
-            <h3>Online Users</h3>
-            <div id="usersList"></div>
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="connection-status hidden">
+            Connecting...
         </div>
     </div>
 
