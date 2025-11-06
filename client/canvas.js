@@ -36,14 +36,20 @@ class DrawingCanvas {
         const container = this.canvas.parentElement;
         const rect = container.getBoundingClientRect();
         
+        // Use container's actual height for responsive design
+        const height = rect.height > 0 ? rect.height : 600;
+        
         this.canvas.width = rect.width;
-        this.canvas.height = 600;
+        this.canvas.height = height;
         this.cursorCanvas.width = rect.width;
-        this.cursorCanvas.height = 600;
+        this.cursorCanvas.height = height;
 
         // Set white background
         this.ctx.fillStyle = '#ffffff';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Redraw all completed strokes after resize
+        this.redrawCanvas();
 
         this.ctx.lineJoin = 'round';
         this.ctx.lineCap = 'round';

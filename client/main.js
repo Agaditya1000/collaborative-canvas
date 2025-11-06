@@ -36,6 +36,61 @@ class DrawingApp {
     }
 
     setupEventHandlers() {
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarClose = document.getElementById('sidebarClose');
+        
+        const closeSidebar = () => {
+            if (sidebar) {
+                sidebar.classList.remove('open');
+                if (mobileMenuToggle) {
+                    mobileMenuToggle.classList.remove('active');
+                    mobileMenuToggle.textContent = '☰';
+                }
+                // Restore body scroll
+                document.body.style.overflow = '';
+            }
+        };
+        
+        if (mobileMenuToggle && sidebar) {
+            mobileMenuToggle.addEventListener('click', () => {
+                const isOpening = !sidebar.classList.contains('open');
+                sidebar.classList.toggle('open');
+                mobileMenuToggle.classList.toggle('active');
+                mobileMenuToggle.textContent = sidebar.classList.contains('open') ? '✕' : '☰';
+                
+                // Prevent body scroll when menu is open on mobile
+                if (window.innerWidth <= 480) {
+                    document.body.style.overflow = isOpening ? 'hidden' : '';
+                }
+            });
+        }
+
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 480 && 
+                sidebar && 
+                sidebar.classList.contains('open') && 
+                !sidebar.contains(e.target) && 
+                !mobileMenuToggle?.contains(e.target)) {
+                closeSidebar();
+            }
+        });
+
+        // Close sidebar when selecting a tool on mobile
+        document.querySelectorAll('.tool, .quick-action').forEach(button => {
+            button.addEventListener('click', () => {
+                if (window.innerWidth <= 480 && sidebar && sidebar.classList.contains('open')) {
+                    setTimeout(closeSidebar, 300);
+                }
+            });
+        });
+
         // Tool selection
         document.querySelectorAll('.tool[data-tool]').forEach(button => {
             button.addEventListener('click', (e) => {

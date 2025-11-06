@@ -1024,35 +1024,575 @@ body {
 }
 
 /* Responsive Design */
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1001;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.sidebar-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1002;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-close:hover {
+    background: #c0392b;
+    transform: scale(1.1);
+}
+
+.mobile-menu-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.mobile-menu-toggle.active {
+    background: #e74c3c;
+}
+
+/* Tablet and below (768px and below) */
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+    }
+
+    .header-content {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .user-info {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .logo {
+        font-size: 20px;
+    }
+
+    .header-badge {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+
+    .user-count-badge,
+    .user-id-badge {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+
     .main-content {
         flex-direction: column;
+        gap: 15px;
     }
     
     .sidebar {
         width: 100%;
         order: 2;
+        max-height: none;
     }
-    
+
     .drawing-area {
         order: 1;
     }
     
     .canvas-container {
-        min-height: 400px;
+        min-height: 50vh;
+        max-height: 60vh;
+    }
+
+    .drawing-instructions {
+        position: relative;
+        top: auto;
+        left: auto;
+        max-width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .drawing-stats {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 10px;
+        justify-content: center;
+    }
+
+    .performance-metrics {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-bottom: 10px;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.7);
     }
     
     .tools {
         justify-content: center;
+        gap: 6px;
     }
     
     .tool {
-        min-width: 100px;
+        min-width: 90px;
+        padding: 10px 14px;
+        font-size: 12px;
+        flex: 1 1 calc(33.333% - 6px);
     }
-    
+
     .quick-actions {
         justify-content: center;
         flex-wrap: wrap;
+        padding: 10px 15px;
+        gap: 8px;
+    }
+
+    .quick-action {
+        padding: 10px 14px;
+        font-size: 18px;
+    }
+
+    .color-swatches {
+        margin-left: 0;
+        gap: 4px;
+    }
+
+    .color-swatch {
+        width: 30px;
+        height: 30px;
+    }
+
+    .tools-panel,
+    .users-panel {
+        padding: 15px;
+    }
+
+    .room-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .room-controls input {
+        width: 100%;
+    }
+
+    .room-controls button {
+        width: 100%;
+    }
+
+    .color-picker-wrapper {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    #colorPicker {
+        width: 50px;
+        height: 40px;
+    }
+
+    .color-preview {
+        flex: 1;
+        min-width: 100px;
+        height: 40px;
+    }
+
+    .color-hex {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .slider-wrapper {
+        margin: 8px 0;
+    }
+
+    .size-preview {
+        width: 40px;
+        height: 40px;
+        font-size: 9px;
+    }
+
+    .users-list {
+        max-height: 200px;
+    }
+
+    .connection-status {
+        bottom: 10px;
+        left: 10px;
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+}
+
+/* Mobile phones (480px and below) */
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+
+    .header {
+        padding: 12px 15px;
+        border-radius: 10px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .header-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .user-count-badge,
+    .user-id-badge {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 85%;
+        max-width: 320px;
+        height: 100vh;
+        background: white;
+        z-index: 1000;
+        overflow-y: auto;
+        box-shadow: 2px 0 20px rgba(0,0,0,0.2);
+        transition: left 0.3s ease;
+        padding: 20px;
+        padding-top: 60px;
+        order: 0;
+    }
+
+    .sidebar-close {
+        display: flex !important;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .sidebar::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.5);
+        z-index: -1;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar.open::before {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .main-content {
+        gap: 10px;
+    }
+    
+    .canvas-container {
+        min-height: 45vh;
+        max-height: 55vh;
+        border-radius: 10px;
+    }
+
+    .drawing-instructions {
+        padding: 0;
+        border-radius: 8px;
+    }
+
+    .instruction-header {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .instruction-item {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    .drawing-stats {
+        padding: 10px 12px;
+        gap: 15px;
+    }
+
+    .stat-label {
+        font-size: 10px;
+    }
+
+    .stat-value {
+        font-size: 18px;
+    }
+
+    .performance-metrics {
+        padding: 8px 12px;
+        gap: 12px;
+        font-size: 11px;
+    }
+
+    .metric-label {
+        font-size: 9px;
+    }
+
+    .metric-value {
+        font-size: 14px;
+    }
+    
+    .tools {
+        gap: 4px;
+    }
+    
+    .tool {
+        min-width: 80px;
+        padding: 8px 10px;
+        font-size: 11px;
+        flex: 1 1 calc(50% - 4px);
+    }
+
+    .quick-actions {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+
+    .quick-action {
+        padding: 8px 12px;
+        font-size: 16px;
+    }
+
+    .color-swatch {
+        width: 28px;
+        height: 28px;
+    }
+
+    .tools-panel,
+    .users-panel {
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .tools-panel h3,
+    .users-panel h3 {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .tool-group {
+        margin-bottom: 15px;
+    }
+
+    .tool-group label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .color-picker-wrapper {
+        padding: 6px;
+    }
+
+    #colorPicker {
+        width: 45px;
+        height: 35px;
+    }
+
+    .color-preview {
+        height: 35px;
+    }
+
+    .color-hex {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .size-preview {
+        width: 35px;
+        height: 35px;
+        font-size: 8px;
+    }
+
+    .users-list {
+        max-height: 150px;
+    }
+
+    .user-item {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .room-controls input {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .room-controls button {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .room-item {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    #textInput {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .connection-status {
+        bottom: 5px;
+        left: 5px;
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+}
+
+/* Small tablets (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+    }
+
+    .canvas-container {
+        min-height: 55vh;
+        max-height: 65vh;
+    }
+
+    .tool {
+        flex: 1 1 calc(33.333% - 8px);
+    }
+}
+
+/* Large tablets and small laptops (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        max-width: 100%;
+        padding: 15px;
+    }
+
+    .sidebar {
+        width: 240px;
+    }
+
+    .canvas-container {
+        min-height: 60vh;
+    }
+
+    .tool {
+        min-width: 70px;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .drawing-instructions {
+        max-width: 250px;
+    }
+}
+
+/* Large screens (1025px and above) */
+@media (min-width: 1025px) {
+    .container {
+        max-width: 1600px;
+    }
+
+    .sidebar {
+        width: 300px;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .canvas-container {
+        min-height: 70vh;
+        max-height: 80vh;
+    }
+
+    .sidebar {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .drawing-instructions {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        max-width: 200px;
+    }
+
+    .drawing-stats {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .performance-metrics {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .tool,
+    .quick-action,
+    .color-swatch,
+    button {
+        min-height: 44px; /* Minimum touch target size */
+    }
+
+    .tool:hover,
+    .quick-action:hover {
+        transform: none; /* Disable hover effects on touch */
+    }
+
+    .tool:active,
+    .quick-action:active {
+        transform: scale(0.95);
+        opacity: 0.8;
     }
 }
 
