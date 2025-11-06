@@ -402,9 +402,17 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🎨 Open http://localhost:${PORT} in multiple browsers to test`);
-    console.log(`📊 Monitor: http://localhost:${PORT}/api/stats`);
-});
+// Vercel compatibility: Don't listen on port if running as serverless function
+// Vercel will handle the serverless function invocation
+if (process.env.VERCEL) {
+    // Export the app for Vercel serverless functions
+    module.exports = app;
+} else {
+    // Normal server mode (local development or traditional hosting)
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+        console.log(`🎨 Open http://localhost:${PORT} in multiple browsers to test`);
+        console.log(`📊 Monitor: http://localhost:${PORT}/api/stats`);
+    });
+}

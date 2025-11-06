@@ -168,18 +168,28 @@ The app runs on `http://localhost:3000` by default.
 
 ### Production Deployment
 
-**Heroku:**
-```bash
-heroku create your-app-name
-git push heroku main
-```
+**⚠️ Important**: This app uses WebSockets (Socket.io) which requires persistent connections. Not all platforms support this.
 
-**Vercel/Netlify:**
-- Not recommended (requires WebSocket support)
-- Consider Railway, Render, or DigitalOcean
+**Recommended Platforms:**
+- **Railway** (Recommended) - Easy setup, free tier, full WebSocket support
+- **Render** - Free tier available, good WebSocket support
+- **Heroku** - Requires credit card for free tier
+- **DigitalOcean App Platform** - Paid but reliable
+- **Fly.io** - Great for global distribution
+
+**Not Recommended:**
+- **Vercel/Netlify** - Serverless functions don't support persistent WebSocket connections
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+**Quick Deploy (Railway):**
+1. Sign up at [railway.app](https://railway.app)
+2. New Project → Deploy from GitHub
+3. Connect your repo
+4. Railway auto-detects and deploys!
 
 **Environment Variables:**
-- `PORT`: Server port (default: 3000)
+- `PORT`: Server port (auto-set by most platforms, default: 3000)
 
 ## 🔍 Monitoring
 

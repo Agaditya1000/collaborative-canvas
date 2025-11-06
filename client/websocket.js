@@ -22,8 +22,9 @@ class DrawingWebSocket {
 
     connect() {
         try {
-            this.socket = io({
-                // Real-time optimizations
+            // Use config if available, otherwise use defaults
+            const backendUrl = (window.appConfig && window.appConfig.backendUrl) || window.location.origin;
+            const socketOptions = (window.appConfig && window.appConfig.socketOptions) || {
                 transports: ['websocket', 'polling'],
                 upgrade: true,
                 forceNew: false,
@@ -33,7 +34,9 @@ class DrawingWebSocket {
                 reconnectionDelayMax: 5000,
                 timeout: 20000,
                 autoConnect: true
-            });
+            };
+            
+            this.socket = io(backendUrl, socketOptions);
 
             this.setupEventHandlers();
             
