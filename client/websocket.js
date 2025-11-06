@@ -315,13 +315,30 @@ class DrawingWebSocket {
         });
 
         this.socket.on('reconnect_failed', () => {
-            this.showNotification('❌ Failed to reconnect. Please refresh the page.', 'error');
+            const isVercel = window.location.hostname.includes('vercel.app');
+            if (isVercel) {
+                this.showNotification('⚠️ Vercel cannot maintain WebSocket connections. Real-time features disabled.', 'error');
+            } else {
+                this.showNotification('❌ Failed to reconnect. Please refresh the page.', 'error');
+            }
             this.updateConnectionStatus(false);
         });
 
         this.socket.on('connect_error', (error) => {
             console.error('❌ Connection error:', error);
-            this.showNotification('🌐 Connection error - check your network', 'error');
+            
+            // Check if we're on Vercel
+            const isVercel = window.location.hostname.includes('vercel.app');
+            
+            if (isVercel) {
+                const message = '⚠️ Vercel Limitation: WebSocket connections are not supported on Vercel serverless functions. Real-time collaboration will not work. For full functionality, deploy to Railway or Render.';
+                this.showNotification(message, 'error');
+                console.error('💡 Vercel serverless functions cannot maintain persistent WebSocket connections');
+                console.error('💡 This is a platform limitation, not a bug in your code');
+            } else {
+                this.showNotification('🌐 Connection error - check your network', 'error');
+            }
+            
             this.updateConnectionStatus(false);
         });
     }

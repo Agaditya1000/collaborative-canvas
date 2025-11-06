@@ -8,6 +8,7 @@ class DrawingApp {
 
     init() {
         document.addEventListener('DOMContentLoaded', () => {
+            this.checkVercelLimitation();
             this.initializeCanvas();
             this.initializeWebSocket();
             this.setupEventHandlers();
@@ -15,6 +16,54 @@ class DrawingApp {
             this.setupColorSwatches();
             this.setupQuickActions();
         });
+    }
+
+    checkVercelLimitation() {
+        // Check if we're on Vercel
+        if (window.location.hostname.includes('vercel.app')) {
+            // Create a warning banner
+            const banner = document.createElement('div');
+            banner.id = 'vercel-warning-banner';
+            banner.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <span style="font-size: 20px;">⚠️</span>
+                    <div style="flex: 1;">
+                        <strong>Vercel Limitation:</strong> WebSocket connections are not supported on Vercel serverless functions. 
+                        Real-time collaboration features (live drawing sync, user cursors, rooms) will not work. 
+                        You can still draw locally. For full functionality, deploy to <a href="https://railway.app" target="_blank" style="color: #fff; text-decoration: underline; font-weight: bold;">Railway</a> or <a href="https://render.com" target="_blank" style="color: #fff; text-decoration: underline; font-weight: bold;">Render</a>.
+                    </div>
+                    <button id="closeVercelWarning" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">×</button>
+                </div>
+            `;
+            banner.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 800px;
+                z-index: 10001;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+                line-height: 1.5;
+            `;
+            
+            document.body.appendChild(banner);
+            
+            // Close button handler
+            document.getElementById('closeVercelWarning')?.addEventListener('click', () => {
+                banner.style.animation = 'slideOutUp 0.3s ease';
+                setTimeout(() => banner.remove(), 300);
+            });
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (banner.parentNode) {
+                    banner.style.animation = 'slideOutUp 0.3s ease';
+                    setTimeout(() => banner.remove(), 300);
+                }
+            }, 10000);
+        }
     }
 
     initializeCanvas() {

@@ -402,10 +402,19 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🎨 Open http://localhost:${PORT} in multiple browsers to test`);
-    console.log(`📊 Monitor: http://localhost:${PORT}/api/stats`);
-});
+// Vercel compatibility: Export handler for serverless functions
+// Note: WebSockets won't work properly on Vercel due to serverless limitations
+if (process.env.VERCEL || process.env.VERCEL_ENV) {
+    // For Vercel serverless functions, export the Express app
+    // Socket.io will not work properly due to serverless limitations
+    // Static files and API routes will work, but WebSocket connections will fail
+    module.exports = app;
+} else {
+    // Normal server mode (local development or traditional hosting)
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+        console.log(`🎨 Open http://localhost:${PORT} in multiple browsers to test`);
+        console.log(`📊 Monitor: http://localhost:${PORT}/api/stats`);
+    });
+}
