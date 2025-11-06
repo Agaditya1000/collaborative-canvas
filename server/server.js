@@ -402,10 +402,12 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-// Vercel compatibility: Don't listen on port if running as serverless function
-// Vercel will handle the serverless function invocation
-if (process.env.VERCEL) {
-    // Export the app for Vercel serverless functions
+// Vercel compatibility: Export handler for serverless functions
+// Note: WebSockets won't work properly on Vercel due to serverless limitations
+if (process.env.VERCEL || process.env.VERCEL_ENV) {
+    // For Vercel serverless functions, export the Express app
+    // Socket.io will not work properly due to serverless limitations
+    // Static files and API routes will work, but WebSocket connections will fail
     module.exports = app;
 } else {
     // Normal server mode (local development or traditional hosting)
