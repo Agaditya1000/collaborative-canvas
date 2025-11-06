@@ -23,7 +23,23 @@ class DrawingWebSocket {
     connect() {
         try {
             // Use config if available, otherwise use defaults
-            const backendUrl = (window.appConfig && window.appConfig.backendUrl) || window.location.origin;
+            let backendUrl = (window.appConfig && window.appConfig.backendUrl) || window.location.origin;
+            
+            // If backendUrl is empty and we're on Vercel, show warning
+            if (!backendUrl && window.location.hostname.includes('vercel.app')) {
+                console.error('⚠️ Render server URL not configured!');
+                console.error('💡 Set NEXT_PUBLIC_SERVER_URL in Vercel environment variables');
+                console.error('💡 Or add ?server=https://your-render-url.onrender.com to the URL');
+                this.showNotification('⚠️ Server URL not configured. Please set Render server URL.', 'error');
+                // Try to use current origin as fallback (won't work but prevents crash)
+                backendUrl = window.location.origin;
+            }
+            
+            // If backendUrl is empty, use current origin (for local dev)
+            if (!backendUrl) {
+                backendUrl = window.location.origin;
+            }
+            
             const socketOptions = (window.appConfig && window.appConfig.socketOptions) || {
                 transports: ['websocket', 'polling'],
                 upgrade: true,
@@ -36,6 +52,7 @@ class DrawingWebSocket {
                 autoConnect: true
             };
             
+            console.log('🔗 Connecting to server:', backendUrl);
             this.socket = io(backendUrl, socketOptions);
 
             this.setupEventHandlers();
