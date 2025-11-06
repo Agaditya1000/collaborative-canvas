@@ -46,8 +46,9 @@ io.on('connection', (socket) => {
     };
 
     // Add user to default room
-    const room = roomManager.addUserToRoom(socket.id, user, defaultRoomId);
-    socket.join(defaultRoomId);
+    let currentRoomId = defaultRoomId;
+    let room = roomManager.addUserToRoom(socket.id, user, currentRoomId);
+    socket.join(currentRoomId);
 
     // Get drawing history from room's drawing state
     const drawingState = room.drawingState;
@@ -57,12 +58,12 @@ io.on('connection', (socket) => {
     socket.emit('user-connected', {
         userId: socket.id,
         color: userColor,
-        users: roomManager.getRoomUsers(defaultRoomId),
+        users: roomManager.getRoomUsers(currentRoomId),
         history: history // Send all completed strokes
     });
 
     // Notify others about new user
-    socket.to(defaultRoomId).emit('user-joined', user);
+    socket.to(currentRoomId).emit('user-joined', user);
 
     // Handle drawing events
     socket.on('stroke-start', (data) => {
@@ -80,7 +81,7 @@ io.on('connection', (socket) => {
 
         // Broadcast to ALL other users in the room immediately
         // Include all necessary data for remote clients
-        socket.to(defaultRoomId).emit('stroke-start', {
+        socket.to(currentRoomId).emit('stroke-start', {
             strokeId: data.strokeId,
             tool: data.tool || 'brush',
             color: data.color || '#000000',
@@ -92,7 +93,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('stroke-update', (data) => {
-        const roomStrokes = getActiveStrokesForRoom(defaultRoomId);
+        const roomStrokes = getActiveStrokesForRoom(currentRoomId);
         const stroke = roomStrokes.get(data.strokeId);
         if (!stroke || stroke.userId !== socket.id) {
             console.log('⚠️ Invalid stroke update:', data.strokeId);
@@ -104,7 +105,7 @@ io.on('connection', (socket) => {
         stroke.lastUpdate = Date.now();
 
         // Broadcast to ALL other users in the room immediately
-        socket.to(defaultRoomId).emit('stroke-update', {
+        socket.to(currentRoomId).emit('stroke-update', {
             strokeId: data.strokeId,
             points: data.points || [], // Send only the new points
             userId: socket.id,
@@ -147,7 +148,7 @@ io.on('connection', (socket) => {
         });
 
         // Broadcast completion to ALL other users in the room
-        socket.to(defaultRoomId).emit('stroke-end', {
+        socket.to(currentRoomId).emit('stroke-end', {
             strokeId: data.strokeId,
             userId: socket.id,
             endTime: data.endTime,
@@ -163,7 +164,7 @@ io.on('connection', (socket) => {
     // Handle cursor movement
     socket.on('cursor-move', (cursor) => {
         user.cursor = cursor;
-        socket.to(defaultRoomId).emit('cursor-move', {
+        socket.to(currentRoomId).emit('cursor-move', {
             userId: socket.id,
             cursor: cursor
         });
@@ -180,7 +181,7 @@ io.on('connection', (socket) => {
             const strokeData = undoResult.action;
             
             // Broadcast undo action to ALL clients in the room (including sender)
-            io.to(defaultRoomId).emit('undo-action', {
+            io.to(currentRoomId).emit('undo-action', {
                 userId: socket.id,
                 actionId: undoResult.actionId,
                 stroke: {
@@ -214,18 +215,33 @@ io.on('connection', (socket) => {
         if (redoResult && redoResult.action) {
             const strokeData = redoResult.action;
             
+            // Build complete stroke object with all fields
+            const strokeObject = {
+                id: strokeData.actionId || strokeData.id,
+                userId: strokeData.userId,
+                tool: strokeData.tool,
+                color: strokeData.color,
+                brushSize: strokeData.brushSize
+            };
+            
+            // Add fields based on type
+            if (strokeData.points && Array.isArray(strokeData.points) && strokeData.points.length > 0) {
+                strokeObject.points = strokeData.points;
+            }
+            if (strokeData.startPos && strokeData.endPos) {
+                strokeObject.startPos = strokeData.startPos;
+                strokeObject.endPos = strokeData.endPos;
+            }
+            if (strokeData.text && strokeData.pos) {
+                strokeObject.text = strokeData.text;
+                strokeObject.pos = strokeData.pos;
+            }
+            
             // Broadcast redo action to ALL clients in the room (including sender)
-            io.to(defaultRoomId).emit('redo-action', {
+            io.to(currentRoomId).emit('redo-action', {
                 userId: socket.id,
                 actionId: redoResult.actionId,
-                stroke: {
-                    id: strokeData.actionId || strokeData.id,
-                    userId: strokeData.userId,
-                    tool: strokeData.tool,
-                    color: strokeData.color,
-                    brushSize: strokeData.brushSize,
-                    points: strokeData.points || []
-                }
+                stroke: strokeObject
             });
             
             // Update undo/redo button states
@@ -247,21 +263,109 @@ io.on('connection', (socket) => {
         drawingState.clearCanvas(socket.id);
         
         // Clear active strokes for this room
-        const roomStrokes = getActiveStrokesForRoom(defaultRoomId);
+        const roomStrokes = getActiveStrokesForRoom(currentRoomId);
         roomStrokes.clear();
         
-        io.to(defaultRoomId).emit('canvas-cleared', {
+        io.to(currentRoomId).emit('canvas-cleared', {
             clearedBy: socket.id,
             timestamp: Date.now()
         });
     });
 
+    // ========== ROOM MANAGEMENT ==========
+    
+    socket.on('create-room', (data) => {
+        const roomName = data.roomName || `room_${Date.now()}`;
+        roomManager.createRoom(roomName);
+        socket.emit('room-created', { roomId: roomName });
+        console.log('🏠 Room created:', roomName, 'by user:', socket.id);
+        
+        // Update room list for all clients
+        io.emit('rooms-updated', { rooms: roomManager.getAllRooms() });
+    });
+    
+    socket.on('join-room', (data) => {
+        const roomName = data.roomName;
+        if (!roomName) {
+            socket.emit('room-error', { message: 'Room name required' });
+            return;
+        }
+        
+        if (roomName !== currentRoomId) {
+            // Leave current room
+            socket.leave(currentRoomId);
+            roomManager.removeUserFromRoom(socket.id, currentRoomId);
+            socket.to(currentRoomId).emit('user-left', socket.id);
+            
+            // Join new room
+            currentRoomId = roomName;
+            room = roomManager.getRoom(currentRoomId);
+            if (!room) {
+                room = roomManager.createRoom(currentRoomId);
+            }
+            room = roomManager.addUserToRoom(socket.id, user, currentRoomId);
+            socket.join(currentRoomId);
+            
+            // Send room history and users
+            const drawingState = room.drawingState;
+            const history = drawingState.getHistoryForUser();
+            socket.emit('room-joined', {
+                roomId: currentRoomId,
+                history: history,
+                users: roomManager.getRoomUsers(currentRoomId)
+            });
+            
+            // Notify others in the new room
+            socket.to(currentRoomId).emit('user-joined', user);
+            console.log('🏠 User', socket.id, 'joined room:', currentRoomId);
+            
+            // Update room list
+            io.emit('rooms-updated', { rooms: roomManager.getAllRooms() });
+        }
+    });
+    
+    // ========== SHAPE AND TEXT EVENTS ==========
+    
+    socket.on('shape-drawn', (data) => {
+        socket.to(currentRoomId).emit('shape-drawn', { ...data, userId: socket.id });
+        room.drawingState.addDrawingEvent({
+            actionId: data.shapeId,
+            userId: socket.id,
+            type: 'shape',
+            tool: data.tool,
+            color: data.color,
+            brushSize: data.brushSize,
+            startPos: data.startPos,
+            endPos: data.endPos
+        });
+    });
+    
+    socket.on('text-added', (data) => {
+        socket.to(currentRoomId).emit('text-added', { ...data, userId: socket.id });
+        room.drawingState.addDrawingEvent({
+            actionId: data.textId,
+            userId: socket.id,
+            type: 'text',
+            tool: 'text',
+            color: data.color,
+            brushSize: data.brushSize,
+            text: data.text,
+            pos: data.pos
+        });
+    });
+    
+    // ========== PING/PONG FOR LATENCY ==========
+    
+    socket.on('ping', (data) => {
+        socket.emit('pong', { timestamp: data.timestamp });
+    });
+    
     // Handle disconnect
     socket.on('disconnect', () => {
         console.log('🔌 User disconnected:', socket.id);
         
         // Clean up user's active strokes in the room
-        const roomStrokes = getActiveStrokesForRoom(defaultRoomId);
+        const roomStrokes = getActiveStrokesForRoom(currentRoomId);
         for (const [strokeId, stroke] of roomStrokes) {
             if (stroke.userId === socket.id) {
                 roomStrokes.delete(strokeId);
@@ -270,12 +374,12 @@ io.on('connection', (socket) => {
         }
         
         // Remove user from room
-        roomManager.removeUserFromRoom(socket.id, defaultRoomId);
+        roomManager.removeUserFromRoom(socket.id, currentRoomId);
         
         // Notify others in the room
-        io.to(defaultRoomId).emit('user-left', socket.id);
+        socket.to(currentRoomId).emit('user-left', socket.id);
         
-        const room = roomManager.getRoom(defaultRoomId);
+        const room = roomManager.getRoom(currentRoomId);
         const drawingState = room.drawingState;
         console.log('📊 Stats - Users:', room.users.size, 'Active strokes:', roomStrokes.size, 'History:', drawingState.drawingHistory.length);
     });

@@ -40,7 +40,26 @@
                             <button id="eraserTool" class="tool" data-tool="eraser" title="Eraser Tool (E)">
                                 🧽 Eraser
                             </button>
+                            <button id="rectangleTool" class="tool" data-tool="rectangle" title="Rectangle (R)">
+                                ⬜ Rectangle
+                            </button>
+                            <button id="circleTool" class="tool" data-tool="circle" title="Circle (C)">
+                                ⭕ Circle
+                            </button>
+                            <button id="lineTool" class="tool" data-tool="line" title="Line (L)">
+                                ➖ Line
+                            </button>
+                            <button id="textTool" class="tool" data-tool="text" title="Text (T)">
+                                📝 Text
+                            </button>
                         </div>
+                    </div>
+                    
+                    <!-- Text Input (hidden until text tool is selected) -->
+                    <div class="tool-group" id="textInputGroup" style="display: none;">
+                        <label for="textInput">Text:</label>
+                        <input type="text" id="textInput" placeholder="Type text here..." maxlength="50">
+                        <button id="applyText" class="tool">Apply Text</button>
                     </div>
 
                     <div class="tool-group">
@@ -75,11 +94,40 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <div class="tool-group">
+                        <label>Persistence:</label>
+                        <div class="actions">
+                            <button id="saveCanvas" class="tool" title="Save current drawing">
+                                💾 Save
+                            </button>
+                            <button id="loadCanvas" class="tool" title="Load saved drawing">
+                                📂 Load
+                            </button>
+                            <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                            <button id="uploadImage" class="tool" title="Upload image to canvas">
+                                🖼️ Image
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Users Panel -->
+                <!-- Rooms Panel -->
                 <div class="users-panel">
-                    <h3>👥 Online Users</h3>
+                    <h3>🏠 Rooms</h3>
+                    <div class="room-controls">
+                        <input type="text" id="roomNameInput" placeholder="Room name..." maxlength="20">
+                        <button id="createRoom" class="tool">Create</button>
+                        <button id="joinRoom" class="tool">Join</button>
+                    </div>
+                    <div id="roomsList" class="users-list">
+                        <div class="room-item active" data-room="default">
+                            <span>🏠 Default Room</span>
+                            <span class="room-users">0</span>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 20px;">👥 Online Users</h3>
                     <div id="usersList" class="users-list">
                         <!-- Users will be populated here -->
                     </div>
@@ -113,6 +161,22 @@
                         <div class="stat-item">
                             <span class="stat-label">Active:</span>
                             <span class="stat-value" id="activeStrokes">0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Metrics -->
+                    <div class="performance-metrics" id="performanceMetrics">
+                        <div class="metric-item">
+                            <span class="metric-label">FPS:</span>
+                            <span class="metric-value" id="fpsCounter">60</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Latency:</span>
+                            <span class="metric-value" id="latencyDisplay">0ms</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Room:</span>
+                            <span class="metric-value" id="currentRoom">default</span>
                         </div>
                     </div>
                 </div>

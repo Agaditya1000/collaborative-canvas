@@ -11,6 +11,13 @@ class DrawingWebSocket {
         // Remove batch processing - it's causing the real-time sync issue
         this.lastEmitTime = 0;
         this.EMIT_THROTTLE = 8; // ~120fps for smooth real-time
+        
+        // Room management
+        this.currentRoom = 'default';
+        
+        // Latency tracking
+        this.latency = 0;
+        this.pingInterval = null;
     }
 
     connect() {
@@ -48,9 +55,13 @@ class DrawingWebSocket {
             console.log('✅ Connected to server, Socket ID:', this.socket.id);
             this.isConnected = true;
             this.reconnectAttempts = 0;
+            this.startLatencyTracking();
             clearTimeout(this.connectionTimeout);
             this.showNotification('Connected to collaborative canvas!', 'success');
             this.updateConnectionStatus(true);
+            
+            // Initialize rooms list
+            this.updateRoomsList();
         });
 
         this.socket.on('user-connected', (data) => {
@@ -159,6 +170,118 @@ class DrawingWebSocket {
         // Handle undo/redo state updates
         this.socket.on('undo-redo-state', (stackSizes) => {
             this.updateUndoRedoStates(stackSizes);
+        });
+        
+        // ========== ROOM EVENTS ==========
+        
+        this.socket.on('room-created', (data) => {
+            console.log('✅ Room created:', data.roomId);
+            this.showNotification(`Room "${data.roomId}" created!`, 'success');
+            this.updateRoomsList();
+        });
+        
+        this.socket.on('room-joined', (data) => {
+            console.log('✅ Joined room:', data.roomId);
+            this.currentRoom = data.roomId;
+            this.showNotification(`Joined room "${data.roomId}"`, 'success');
+            
+            // Update current room display
+            const currentRoomElement = document.getElementById('currentRoom');
+            if (currentRoomElement) {
+                currentRoomElement.textContent = data.roomId;
+            }
+            
+            // Clear canvas and load room history
+            if (window.drawingCanvas) {
+                window.drawingCanvas.completedStrokes = [];
+                window.drawingCanvas.remoteStrokes.clear();
+                
+                // Load history
+                if (data.history && Array.isArray(data.history)) {
+                    data.history.forEach(event => {
+                        if (event.type === 'stroke' && event.points && event.points.length > 0) {
+                            window.drawingCanvas.completedStrokes.push({
+                                id: event.actionId || event.id,
+                                tool: event.tool || 'brush',
+                                color: event.color || '#000000',
+                                brushSize: event.brushSize || 5,
+                                points: event.points,
+                                userId: event.userId
+                            });
+                        } else if (event.type === 'shape') {
+                            window.drawingCanvas.completedStrokes.push({
+                                id: event.actionId || event.id,
+                                tool: event.tool,
+                                color: event.color || '#000000',
+                                brushSize: event.brushSize || 5,
+                                startPos: event.startPos,
+                                endPos: event.endPos
+                            });
+                        } else if (event.type === 'text') {
+                            window.drawingCanvas.completedStrokes.push({
+                                id: event.actionId || event.id,
+                                tool: 'text',
+                                text: event.text,
+                                color: event.color || '#000000',
+                                brushSize: event.brushSize || 5,
+                                pos: event.pos
+                            });
+                        }
+                    });
+                    window.drawingCanvas.redrawCanvas();
+                }
+            }
+            
+            // Update user list
+            if (data.users) {
+                this.updateUsersList(data.users);
+            }
+            
+            this.updateRoomsList();
+        });
+        
+        this.socket.on('room-error', (data) => {
+            console.error('❌ Room error:', data.message);
+            this.showNotification(`Room error: ${data.message}`, 'error');
+        });
+        
+        this.socket.on('rooms-updated', (data) => {
+            if (data && data.rooms) {
+                this.updateRoomsList(data.rooms);
+            }
+        });
+        
+        // Handle remote shapes and text
+        this.socket.on('shape-drawn', (data) => {
+            if (window.drawingCanvas && data.userId !== this.userId) {
+                const shape = {
+                    id: data.shapeId,
+                    tool: data.tool,
+                    color: data.color,
+                    brushSize: data.brushSize,
+                    startPos: data.startPos,
+                    endPos: data.endPos,
+                    userId: data.userId
+                };
+                window.drawingCanvas.completedStrokes.push(shape);
+                window.drawingCanvas.redrawCanvas();
+            }
+        });
+        
+        this.socket.on('text-added', (data) => {
+            if (window.drawingCanvas && data.userId !== this.userId) {
+                const textObj = {
+                    id: data.textId,
+                    tool: 'text',
+                    text: data.text,
+                    color: data.color,
+                    brushSize: data.brushSize,
+                    pos: data.pos,
+                    userId: data.userId
+                };
+                window.drawingCanvas.completedStrokes.push(textObj);
+                window.drawingCanvas.redrawCanvas();
+            }
         });
 
         this.socket.on('canvas-cleared', (data) => {
@@ -582,6 +705,48 @@ class DrawingWebSocket {
     reconnect() {
         if (this.socket) {
             this.socket.connect();
+        }
+    }
+    
+    // ========== ROOM LIST MANAGEMENT ==========
+    
+    updateRoomsList(rooms) {
+        const roomsList = document.getElementById('roomsList');
+        if (!roomsList) return;
+        
+        // Clear existing rooms
+        roomsList.innerHTML = '';
+        
+        // Add default room
+        const defaultRoomItem = document.createElement('div');
+        defaultRoomItem.className = 'room-item' + (this.currentRoom === 'default' ? ' active' : '');
+        defaultRoomItem.setAttribute('data-room', 'default');
+        defaultRoomItem.innerHTML = `
+            <span>🏠 Default Room</span>
+            <span class="room-users">?</span>
+        `;
+        defaultRoomItem.addEventListener('click', () => {
+            this.joinRoom('default');
+        });
+        roomsList.appendChild(defaultRoomItem);
+        
+        // Add other rooms
+        if (rooms && Array.isArray(rooms)) {
+            rooms.forEach(roomId => {
+                if (roomId !== 'default') {
+                    const roomItem = document.createElement('div');
+                    roomItem.className = 'room-item' + (this.currentRoom === roomId ? ' active' : '');
+                    roomItem.setAttribute('data-room', roomId);
+                    roomItem.innerHTML = `
+                        <span>🏠 ${roomId}</span>
+                        <span class="room-users">?</span>
+                    `;
+                    roomItem.addEventListener('click', () => {
+                        this.joinRoom(roomId);
+                    });
+                    roomsList.appendChild(roomItem);
+                }
+            });
         }
     }
 }

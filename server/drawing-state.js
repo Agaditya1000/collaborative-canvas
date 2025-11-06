@@ -27,6 +27,18 @@ class DrawingState {
             timestamp: event.timestamp || Date.now(),
             actionId: actionId
         };
+        
+        // Add shape-specific fields
+        if (event.startPos && event.endPos) {
+            drawingEvent.startPos = event.startPos;
+            drawingEvent.endPos = event.endPos;
+        }
+        
+        // Add text-specific fields
+        if (event.text && event.pos) {
+            drawingEvent.text = event.text;
+            drawingEvent.pos = event.pos;
+        }
 
         this.drawingHistory.push(drawingEvent);
 

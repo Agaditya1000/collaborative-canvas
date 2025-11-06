@@ -255,7 +255,30 @@ class DrawingApp {
     setupKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
             // Only process shortcuts if not typing in an input
-            if (e.target.tagName === 'INPUT') return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            // Tool shortcuts
+            if (e.key === 'b' || e.key === 'B') {
+                this.setActiveTool('brush');
+                this.canvas.setTool('brush');
+            } else if (e.key === 'e' || e.key === 'E') {
+                this.setActiveTool('eraser');
+                this.canvas.setTool('eraser');
+            } else if (e.key === 'r' || e.key === 'R') {
+                this.setActiveTool('rectangle');
+                this.canvas.setTool('rectangle');
+            } else if (e.key === 'c' || e.key === 'C') {
+                this.setActiveTool('circle');
+                this.canvas.setTool('circle');
+            } else if (e.key === 'l' || e.key === 'L') {
+                this.setActiveTool('line');
+                this.canvas.setTool('line');
+            } else if (e.key === 't' || e.key === 'T') {
+                this.setActiveTool('text');
+                this.canvas.setTool('text');
+                const textInputGroup = document.getElementById('textInputGroup');
+                if (textInputGroup) textInputGroup.style.display = 'block';
+            }
 
             // Ctrl+Z or Cmd+Z for Undo
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {

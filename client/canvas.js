@@ -14,6 +14,18 @@ class DrawingCanvas {
         this.remoteStrokes = new Map();
         this.completedStrokes = []; // Store all completed strokes for undo/redo
         
+        // Shape drawing state
+        this.shapeStartPos = null;
+        this.previewCanvas = null; // For shape preview
+        
+        // Performance tracking
+        this.lastFrameTime = performance.now();
+        this.frameCount = 0;
+        this.fps = 60;
+        
+        // Text state
+        this.pendingText = null;
+        
         this.setupCanvas();
         this.setupEventListeners();
         
@@ -46,10 +58,18 @@ class DrawingCanvas {
         this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
         this.canvas.addEventListener('mouseout', this.stopDrawing.bind(this));
 
-        // Touch events
-        this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
-        this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this));
-        this.canvas.addEventListener('touchend', this.stopDrawing.bind(this));
+        // Touch events - Enhanced for mobile
+        this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+        this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+        this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this));
+        this.canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this));
+        
+        // Prevent scrolling on touch
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         // Cursor tracking - track even when not drawing
         this.canvas.addEventListener('mousemove', this.trackCursor.bind(this));
@@ -68,8 +88,27 @@ class DrawingCanvas {
 
     startDrawing(e) {
         e.preventDefault();
-        this.isDrawing = true;
         const pos = this.getMousePos(e);
+        
+        // Handle shape tools differently
+        if (['rectangle', 'circle', 'line'].includes(this.currentTool)) {
+            this.isDrawing = true;
+            this.shapeStartPos = pos;
+            return; // Don't create stroke yet, wait for end
+        }
+        
+        // Handle text tool
+        if (this.currentTool === 'text') {
+            const textInput = document.getElementById('textInput');
+            if (textInput && textInput.value.trim()) {
+                this.addText(textInput.value.trim(), pos);
+                textInput.value = '';
+            }
+            return;
+        }
+        
+        // Brush and eraser tools
+        this.isDrawing = true;
         
         // Create new stroke with unique ID
         this.currentStroke = {
@@ -94,10 +133,19 @@ class DrawingCanvas {
     }
 
     draw(e) {
-        if (!this.isDrawing || !this.currentStroke) return;
+        if (!this.isDrawing) return;
 
         e.preventDefault();
         const pos = this.getMousePos(e);
+
+        // Handle shape preview
+        if (['rectangle', 'circle', 'line'].includes(this.currentTool) && this.shapeStartPos) {
+            this.drawShapePreview(this.currentTool, this.shapeStartPos, pos);
+            return;
+        }
+
+        // Brush and eraser tools
+        if (!this.currentStroke) return;
 
         // Add point to current stroke
         this.currentStroke.points.push(pos);
@@ -115,8 +163,24 @@ class DrawingCanvas {
         }
     }
 
-    stopDrawing() {
-        if (!this.isDrawing || !this.currentStroke) return;
+    stopDrawing(e) {
+        if (!this.isDrawing) return;
+
+        // Handle shape completion
+        if (['rectangle', 'circle', 'line'].includes(this.currentTool) && this.shapeStartPos) {
+            const endPos = e ? this.getMousePos(e) : this.shapeStartPos;
+            this.completeShape(this.currentTool, this.shapeStartPos, endPos);
+            this.shapeStartPos = null;
+            this.isDrawing = false;
+            // Clear preview
+            this.redrawCanvas();
+            return;
+        }
+
+        if (!this.currentStroke) {
+            this.isDrawing = false;
+            return;
+        }
 
         this.isDrawing = false;
         
@@ -291,17 +355,42 @@ class DrawingCanvas {
         console.log('↪️ Handling redo for stroke:', data.actionId);
         
         // Check if stroke already exists
-        const existingIndex = this.completedStrokes.findIndex(stroke => stroke.id === data.actionId);
+        const existingIndex = this.completedStrokes.findIndex(stroke => 
+            stroke.id === data.actionId || 
+            (stroke.id && stroke.id.toString() === data.actionId.toString())
+        );
+        
         if (existingIndex === -1 && data.stroke) {
-            // Add the stroke back to completed strokes
-            this.completedStrokes.push({
-                id: data.stroke.id,
+            // Reconstruct the complete stroke object with all necessary fields
+            const strokeToAdd = {
+                id: data.stroke.id || data.actionId,
                 userId: data.stroke.userId,
                 tool: data.stroke.tool,
                 color: data.stroke.color,
-                brushSize: data.stroke.brushSize,
-                points: data.stroke.points || []
-            });
+                brushSize: data.stroke.brushSize
+            };
+            
+            // Add fields based on tool type
+            if (data.stroke.points && Array.isArray(data.stroke.points) && data.stroke.points.length > 0) {
+                // Regular stroke (brush/eraser)
+                strokeToAdd.points = data.stroke.points;
+            } else if (data.stroke.startPos && data.stroke.endPos) {
+                // Shape (rectangle, circle, line)
+                strokeToAdd.startPos = data.stroke.startPos;
+                strokeToAdd.endPos = data.stroke.endPos;
+            } else if (data.stroke.text && data.stroke.pos) {
+                // Text
+                strokeToAdd.text = data.stroke.text;
+                strokeToAdd.pos = data.stroke.pos;
+            }
+            
+            // Add the stroke back to completed strokes
+            this.completedStrokes.push(strokeToAdd);
+            console.log('✅ Added stroke back for redo:', strokeToAdd.id, 'type:', strokeToAdd.tool);
+        } else if (existingIndex !== -1) {
+            console.log('⚠️ Stroke already exists, skipping redo add');
+        } else {
+            console.warn('⚠️ No stroke data provided for redo');
         }
         
         // Redraw entire canvas
@@ -315,15 +404,56 @@ class DrawingCanvas {
         this.ctx.fillStyle = '#ffffff';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Redraw all completed strokes
+        // Redraw all completed strokes (including shapes, text, images)
         this.completedStrokes.forEach(stroke => {
-            this.redrawStroke(stroke);
+            if (stroke.tool === 'rectangle' || stroke.tool === 'circle' || stroke.tool === 'line') {
+                this.redrawShape(stroke);
+            } else if (stroke.tool === 'text') {
+                this.redrawText(stroke);
+            } else if (stroke.points && stroke.points.length >= 2) {
+                this.redrawStroke(stroke);
+            }
         });
         
         // Redraw active remote strokes
         this.remoteStrokes.forEach(stroke => {
-            this.redrawStroke(stroke);
+            if (stroke.points && stroke.points.length >= 2) {
+                this.redrawStroke(stroke);
+            }
         });
+    }
+    
+    redrawShape(stroke) {
+        this.ctx.save();
+        this.ctx.strokeStyle = stroke.color || '#000000';
+        this.ctx.lineWidth = stroke.brushSize || 5;
+        this.ctx.setLineDash([]);
+        
+        if (stroke.tool === 'rectangle' && stroke.startPos && stroke.endPos) {
+            const width = stroke.endPos.x - stroke.startPos.x;
+            const height = stroke.endPos.y - stroke.startPos.y;
+            this.ctx.strokeRect(stroke.startPos.x, stroke.startPos.y, width, height);
+        } else if (stroke.tool === 'circle' && stroke.startPos && stroke.endPos) {
+            const radius = Math.sqrt(Math.pow(stroke.endPos.x - stroke.startPos.x, 2) + Math.pow(stroke.endPos.y - stroke.startPos.y, 2));
+            this.ctx.beginPath();
+            this.ctx.arc(stroke.startPos.x, stroke.startPos.y, radius, 0, Math.PI * 2);
+            this.ctx.stroke();
+        } else if (stroke.tool === 'line' && stroke.startPos && stroke.endPos) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(stroke.startPos.x, stroke.startPos.y);
+            this.ctx.lineTo(stroke.endPos.x, stroke.endPos.y);
+            this.ctx.stroke();
+        }
+        this.ctx.restore();
+    }
+    
+    redrawText(stroke) {
+        if (!stroke.text || !stroke.pos) return;
+        this.ctx.save();
+        this.ctx.fillStyle = stroke.color || '#000000';
+        this.ctx.font = `${(stroke.brushSize || 5) * 3}px Arial`;
+        this.ctx.fillText(stroke.text, stroke.pos.x, stroke.pos.y);
+        this.ctx.restore();
     }
 
     redrawStroke(stroke) {
@@ -508,22 +638,37 @@ class DrawingCanvas {
 
     handleTouchStart(e) {
         e.preventDefault();
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousedown', {
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            bubbles: true
-        });
-        this.canvas.dispatchEvent(mouseEvent);
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                bubbles: true,
+                cancelable: true
+            });
+            this.canvas.dispatchEvent(mouseEvent);
+        }
     }
 
     handleTouchMove(e) {
         e.preventDefault();
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            bubbles: true
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                bubbles: true,
+                cancelable: true
+            });
+            this.canvas.dispatchEvent(mouseEvent);
+        }
+    }
+    
+    handleTouchEnd(e) {
+        e.preventDefault();
+        const mouseEvent = new MouseEvent('mouseup', {
+            bubbles: true,
+            cancelable: true
         });
         this.canvas.dispatchEvent(mouseEvent);
     }
@@ -699,5 +844,190 @@ class DrawingCanvas {
             completedStrokes: this.completedStrokes.length,
             userCursors: this.userCursors.size
         };
+    }
+    
+    // ========== SHAPE DRAWING METHODS ==========
+    
+    drawShapePreview(tool, startPos, endPos) {
+        // Redraw everything first
+        this.redrawCanvas();
+        
+        // Draw preview shape with dashed line
+        this.ctx.strokeStyle = this.currentColor;
+        this.ctx.lineWidth = this.brushSize;
+        this.ctx.setLineDash([5, 5]);
+        
+        if (tool === 'rectangle') {
+            const width = endPos.x - startPos.x;
+            const height = endPos.y - startPos.y;
+            this.ctx.strokeRect(startPos.x, startPos.y, width, height);
+        } else if (tool === 'circle') {
+            const radius = Math.sqrt(Math.pow(endPos.x - startPos.x, 2) + Math.pow(endPos.y - startPos.y, 2));
+            this.ctx.beginPath();
+            this.ctx.arc(startPos.x, startPos.y, radius, 0, Math.PI * 2);
+            this.ctx.stroke();
+        } else if (tool === 'line') {
+            this.ctx.beginPath();
+            this.ctx.moveTo(startPos.x, startPos.y);
+            this.ctx.lineTo(endPos.x, endPos.y);
+            this.ctx.stroke();
+        }
+        
+        this.ctx.setLineDash([]);
+    }
+    
+    completeShape(tool, startPos, endPos) {
+        const strokeId = 'shape_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Draw the shape
+        this.ctx.strokeStyle = this.currentColor;
+        this.ctx.lineWidth = this.brushSize;
+        this.ctx.setLineDash([]);
+        
+        if (tool === 'rectangle') {
+            const width = endPos.x - startPos.x;
+            const height = endPos.y - startPos.y;
+            this.ctx.strokeRect(startPos.x, startPos.y, width, height);
+        } else if (tool === 'circle') {
+            const radius = Math.sqrt(Math.pow(endPos.x - startPos.x, 2) + Math.pow(endPos.y - startPos.y, 2));
+            this.ctx.beginPath();
+            this.ctx.arc(startPos.x, startPos.y, radius, 0, Math.PI * 2);
+            this.ctx.stroke();
+        } else if (tool === 'line') {
+            this.ctx.beginPath();
+            this.ctx.moveTo(startPos.x, startPos.y);
+            this.ctx.lineTo(endPos.x, endPos.y);
+            this.ctx.stroke();
+        }
+        
+        const shape = {
+            id: strokeId,
+            tool: tool,
+            color: this.currentColor,
+            brushSize: this.brushSize,
+            startPos: startPos,
+            endPos: endPos,
+            userId: window.drawingApp ? window.drawingApp.websocket.userId : 'unknown'
+        };
+        
+        this.completedStrokes.push(shape);
+        
+        // Emit to server
+        if (window.drawingApp && window.drawingApp.websocket && window.drawingApp.websocket.socket) {
+            window.drawingApp.websocket.socket.emit('shape-drawn', {
+                shapeId: strokeId,
+                tool: tool,
+                color: this.currentColor,
+                brushSize: this.brushSize,
+                startPos: startPos,
+                endPos: endPos
+            });
+        }
+    }
+    
+    // ========== TEXT METHODS ==========
+    
+    addText(text, pos) {
+        const textId = 'text_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        this.ctx.fillStyle = this.currentColor;
+        this.ctx.font = `${this.brushSize * 3}px Arial`;
+        this.ctx.fillText(text, pos.x, pos.y);
+        
+        const textObj = {
+            id: textId,
+            tool: 'text',
+            text: text,
+            color: this.currentColor,
+            brushSize: this.brushSize,
+            pos: pos,
+            userId: window.drawingApp ? window.drawingApp.websocket.userId : 'unknown'
+        };
+        
+        this.completedStrokes.push(textObj);
+        
+        // Emit to server
+        if (window.drawingApp && window.drawingApp.websocket && window.drawingApp.websocket.socket) {
+            window.drawingApp.websocket.socket.emit('text-added', {
+                textId: textId,
+                text: text,
+                color: this.currentColor,
+                brushSize: this.brushSize,
+                pos: pos
+            });
+        }
+    }
+    
+    // ========== IMAGE METHODS ==========
+    
+    addImage(image, x, y, width, height) {
+        this.ctx.drawImage(image, x, y, width || image.width, height || image.height);
+        
+        const imageObj = {
+            id: 'image_' + Date.now(),
+            tool: 'image',
+            imageData: this.canvas.toDataURL(),
+            x: x,
+            y: y,
+            width: width || image.width,
+            height: height || image.height
+        };
+        
+        this.completedStrokes.push(imageObj);
+    }
+    
+    // ========== PERSISTENCE METHODS ==========
+    
+    saveCanvas() {
+        const data = {
+            strokes: this.completedStrokes,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('canvasState', JSON.stringify(data));
+        console.log('💾 Canvas saved to localStorage');
+        return data;
+    }
+    
+    loadCanvas() {
+        const saved = localStorage.getItem('canvasState');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                this.completedStrokes = data.strokes || [];
+                this.redrawCanvas();
+                console.log('📂 Canvas loaded from localStorage');
+                return true;
+            } catch (e) {
+                console.error('❌ Error loading canvas:', e);
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    // ========== PERFORMANCE TRACKING ==========
+    
+    startFPS() {
+        this.lastFrameTime = performance.now();
+        this.frameCount = 0;
+        this.updateFPS();
+    }
+    
+    updateFPS() {
+        const now = performance.now();
+        this.frameCount++;
+        
+        if (now - this.lastFrameTime >= 1000) {
+            this.fps = this.frameCount;
+            this.frameCount = 0;
+            this.lastFrameTime = now;
+            
+            const fpsElement = document.getElementById('fpsCounter');
+            if (fpsElement) {
+                fpsElement.textContent = this.fps;
+            }
+        }
+        
+        requestAnimationFrame(() => this.updateFPS());
     }
 }

@@ -887,6 +887,131 @@ body {
     display: none;
 }
 
+/* Room Controls */
+.room-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.room-controls input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.room-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.room-item:hover {
+    background: #f8f9fa;
+    border-color: #3498db;
+}
+
+.room-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+}
+
+.room-users {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Performance Metrics */
+.performance-metrics {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 12px;
+    display: flex;
+    gap: 15px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.metric-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-label {
+    font-size: 10px;
+    opacity: 0.7;
+    text-transform: uppercase;
+}
+
+.metric-value {
+    font-size: 16px;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+/* Text Input Group */
+#textInputGroup {
+    animation: slideDown 0.3s ease-out;
+}
+
+#textInput {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+#textInput:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+/* Image Upload */
+#imageUpload {
+    display: none;
+}
+
+/* Touch Support Indicator */
+@media (hover: none) and (pointer: coarse) {
+    .canvas-container::before {
+        content: '📱 Touch Enabled';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(76, 175, 80, 0.9);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        z-index: 1000;
+        animation: fadeInOut 3s ease-in-out;
+    }
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    10%, 90% { opacity: 1; }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .main-content {
