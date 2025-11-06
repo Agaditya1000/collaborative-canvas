@@ -5,7 +5,7 @@
 // Replace 'YOUR_RENDER_URL_HERE' with your actual Render server URL
 // Example: 'https://collaborative-canvas-server.onrender.com'
 
-const RENDER_SERVER_URL = 'YOUR_RENDER_URL_HERE'; // ⬅️ UPDATE THIS AFTER RENDER DEPLOYMENT
+const RENDER_SERVER_URL = 'https://collaborative-canvas-6pq5.onrender.com'; // ✅ Render server URL
 
 window.appConfig = {
     // Backend URL - Will be set from URL parameter, meta tag, or default to current origin
