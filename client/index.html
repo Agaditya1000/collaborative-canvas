@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Drawing Canvas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Collaborative Drawing Canvas</h1>
+            <div class="user-info">
+                <span id="userCount">0 users online</span>
+                <span id="userId"></span>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <div class="tools">
+                <button id="brushTool" class="tool active" data-tool="brush">🖌️ Brush</button>
+                <button id="eraserTool" class="tool" data-tool="eraser">🧽 Eraser</button>
+                <button id="clearCanvas" class="tool danger">🗑️ Clear</button>
+            </div>
+            
+            <div class="color-picker">
+                <input type="color" id="colorPicker" value="#000000">
+                <input type="range" id="brushSize" min="1" max="50" value="5">
+                <span id="brushSizeValue">5px</span>
+            </div>
+
+            <div class="actions">
+                <button id="undoBtn" class="tool">↩️ Undo</button>
+                <button id="redoBtn" class="tool">↪️ Redo</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="drawingCanvas"></canvas>
+            <canvas id="cursorCanvas"></canvas>
+        </div>
+
+        <div class="users-panel">
+            <h3>Online Users</h3>
+            <div id="usersList"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+    <script src="canvas.js"></script>
+    <script src="websocket.js"></script>
+</body>
+</html>
