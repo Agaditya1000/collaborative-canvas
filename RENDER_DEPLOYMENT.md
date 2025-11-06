@@ -11,7 +11,7 @@ Your collaborative canvas is now configured for **full deployment on Render** (b
 - ✅ Client configured to use same domain
 - ✅ All changes committed and pushed to GitHub
 
-**Your Render URL**: https://collaborative-canvas-6pq5.onrender.com/
+**Your Render URL**: https://collaborative-canvas-ozxo.onrender.com/
 
 ---
 
@@ -28,12 +28,12 @@ Since you already have a Render deployment, it will **auto-update** when you pus
 
 2. **Check Render Dashboard**:
    - Go to [render.com](https://render.com)
-   - Open your service: `collaborative-canvas-6pq5`
+   - Open your service: `collaborative-canvas-ozxo`
    - Check "Events" tab - should show "Deploying..." or "Live"
    - Wait 2-3 minutes for deployment
 
 3. **Test Your App**:
-   - Visit: https://collaborative-canvas-6pq5.onrender.com/
+   - Visit: https://collaborative-canvas-ozxo.onrender.com/
    - Open browser console (F12)
    - Should see: `✅ Connected to server`
    - Try drawing - should work! 🎉
@@ -213,7 +213,7 @@ Should return JSON with server statistics.
 
 Your collaborative canvas is now fully deployed on Render!
 
-**URL**: `https://collaborative-canvas-6pq5.onrender.com/`
+**URL**: `https://collaborative-canvas-ozxo.onrender.com/`
 
 All features work perfectly because client and server are on the same domain! 🚀
 
