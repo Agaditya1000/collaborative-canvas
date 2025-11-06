@@ -1,6 +1,6 @@
-# ✅ Deployment Checklist
+# ✅ Render Deployment Checklist
 
-Follow this checklist to deploy both client and server.
+Follow this checklist to deploy your collaborative canvas on Render.
 
 ---
 
@@ -8,11 +8,11 @@ Follow this checklist to deploy both client and server.
 
 - [ ] Code is pushed to GitHub/GitLab/Bitbucket
 - [ ] All files are committed: `git status` shows clean
-- [ ] You have accounts on both Vercel and Render
+- [ ] You have a Render account
 
 ---
 
-## 🖥️ Step 1: Deploy Server to Render
+## 🚀 Step 1: Deploy to Render
 
 ### Render Setup
 - [ ] Go to [render.com](https://render.com) and sign up/login
@@ -21,84 +21,37 @@ Follow this checklist to deploy both client and server.
 - [ ] Select repository: `collaborative-canvas`
 
 ### Render Configuration
-- [ ] **Name**: `collaborative-canvas-server`
+- [ ] **Name**: `collaborative-canvas` (or your choice)
 - [ ] **Region**: Choose closest to you
 - [ ] **Branch**: `main` (or `master`)
 - [ ] **Root Directory**: `.` (empty)
 - [ ] **Runtime**: `Node`
 - [ ] **Build Command**: `npm install`
 - [ ] **Start Command**: `npm start`
-- [ ] **Plan**: `Free` (or `Starter` for $7/month)
+- [ ] **Plan**: `Free` (or `Starter` for $7/month - always on)
 
 ### Deploy
 - [ ] Click "Create Web Service"
 - [ ] Wait for deployment (2-3 minutes)
-- [ ] **Copy Render URL**: `https://collaborative-canvas-server.onrender.com`
-- [ ] Test: Open `https://your-render-url.onrender.com/api/stats` in browser
+- [ ] **Copy Render URL**: `https://your-app.onrender.com`
+- [ ] Test: Open `https://your-app.onrender.com/api/stats` in browser
 - [ ] Should see JSON response ✅
 
 **✅ Render URL**: `_________________________________`
 
 ---
 
-## 🎨 Step 2: Configure Client with Render URL
+## ✅ Step 2: Test Everything
 
-### Update Config
-- [ ] Open `client/config.js`
-- [ ] Find line with `backendUrl: ''`
-- [ ] Replace with your Render URL:
-  ```javascript
-  backendUrl: 'https://your-render-url.onrender.com',
-  ```
-- [ ] Save file
-
-### Commit Changes
-- [ ] `git add client/config.js`
-- [ ] `git commit -m "Configure Render server URL"`
-- [ ] `git push origin main`
-
----
-
-## 🌐 Step 3: Deploy Client to Vercel
-
-### Vercel Setup
-- [ ] Go to [vercel.com](https://vercel.com) and sign up/login
-- [ ] Click "Add New..." → "Project"
-- [ ] Import your Git repository
-- [ ] Select repository: `collaborative-canvas`
-
-### Vercel Configuration
-- [ ] **Framework Preset**: `Other`
-- [ ] **Root Directory**: `.` (empty)
-- [ ] **Build Command**: Leave empty
-- [ ] **Output Directory**: `client`
-- [ ] **Install Command**: Leave empty
-
-### Environment Variables (Optional but Recommended)
-- [ ] Go to "Environment Variables"
-- [ ] Add: `NEXT_PUBLIC_SERVER_URL` = `https://your-render-url.onrender.com`
-- [ ] Apply to: Production, Preview, Development
-
-### Deploy
-- [ ] Click "Deploy"
-- [ ] Wait for deployment (1-2 minutes)
-- [ ] **Copy Vercel URL**: `https://your-app.vercel.app`
-
-**✅ Vercel URL**: `_________________________________`
-
----
-
-## ✅ Step 4: Test Everything
-
-### Test Frontend
-- [ ] Open Vercel URL in browser
+### Test Application
+- [ ] Open Render URL in browser
 - [ ] Open browser console (F12)
-- [ ] Check for: `🔗 Connecting to server: https://your-render-url.onrender.com`
+- [ ] Check for: `🔗 Connecting to server: https://your-app.onrender.com`
 - [ ] Check for: `✅ Connected to server`
 - [ ] Try drawing - should work locally ✅
 
 ### Test Real-time Collaboration
-- [ ] Open Vercel URL in **two different browsers** (or incognito)
+- [ ] Open Render URL in **two different browsers** (or incognito)
 - [ ] Draw in one browser
 - [ ] Drawing should appear in other browser in real-time ✅
 - [ ] Test user cursors - should see other user's cursor ✅
@@ -108,50 +61,44 @@ Follow this checklist to deploy both client and server.
 
 ## 🎉 Success!
 
-Your app is now fully deployed!
+Your app is now fully deployed on Render!
 
-**Frontend**: `https://your-app.vercel.app`  
-**Backend**: `https://your-render-url.onrender.com`
+**URL**: `https://your-app.onrender.com`
+
+Both client and server are on the same domain, so WebSocket connections work perfectly!
 
 ---
 
 ## 🔄 Future Updates
 
-### Update Server
+### Update Application
 ```bash
-# Edit server files
+# Make changes to any files
 git add .
-git commit -m "Update server"
-git push
+git commit -m "Update application"
+git push origin main
 # Render auto-deploys
-```
-
-### Update Client
-```bash
-# Edit client files
-git add .
-git commit -m "Update client"
-git push
-# Vercel auto-deploys
 ```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Server Not Connecting
-- [ ] Check Render service is running (not sleeping)
-- [ ] Test Render URL: `https://your-render-url.onrender.com/api/stats`
+### Server Not Starting
 - [ ] Check Render logs in dashboard
-- [ ] Verify `client/config.js` has correct Render URL
+- [ ] Verify `package.json` has `start` script: `"start": "node server/server.js"`
+- [ ] Check that `server/server.js` exists
 
-### Client Can't Connect
+### WebSocket Connection Fails
 - [ ] Check browser console for errors
-- [ ] Verify Render URL in `client/config.js`
-- [ ] Try adding `?server=https://your-render-url.onrender.com` to Vercel URL
-- [ ] Check Vercel deployment logs
+- [ ] Verify Render service is running (not sleeping)
+- [ ] First request on free tier takes ~30 seconds to wake up
+- [ ] Check Render logs in dashboard
+
+### Static Files Not Loading
+- [ ] Verify `server/server.js` serves static files from `client` directory
+- [ ] Check Render logs for file serving errors
 
 ---
 
-**Need help?** Check `DEPLOY_BOTH.md` for detailed instructions!
-
+**Need help?** Check Render logs: Render dashboard → Your service → Logs

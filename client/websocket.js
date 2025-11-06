@@ -25,17 +25,7 @@ class DrawingWebSocket {
             // Use config if available, otherwise use defaults
             let backendUrl = (window.appConfig && window.appConfig.backendUrl) || window.location.origin;
             
-            // If backendUrl is empty and we're on Vercel, show warning
-            if (!backendUrl && window.location.hostname.includes('vercel.app')) {
-                console.error('⚠️ Render server URL not configured!');
-                console.error('💡 Set NEXT_PUBLIC_SERVER_URL in Vercel environment variables');
-                console.error('💡 Or add ?server=https://your-render-url.onrender.com to the URL');
-                this.showNotification('⚠️ Server URL not configured. Please set Render server URL.', 'error');
-                // Try to use current origin as fallback (won't work but prevents crash)
-                backendUrl = window.location.origin;
-            }
-            
-            // If backendUrl is empty, use current origin (for local dev)
+            // If backendUrl is empty, use current origin
             if (!backendUrl) {
                 backendUrl = window.location.origin;
             }
@@ -332,30 +322,13 @@ class DrawingWebSocket {
         });
 
         this.socket.on('reconnect_failed', () => {
-            const isVercel = window.location.hostname.includes('vercel.app');
-            if (isVercel) {
-                this.showNotification('⚠️ Vercel cannot maintain WebSocket connections. Real-time features disabled.', 'error');
-            } else {
-                this.showNotification('❌ Failed to reconnect. Please refresh the page.', 'error');
-            }
+            this.showNotification('❌ Failed to reconnect. Please refresh the page.', 'error');
             this.updateConnectionStatus(false);
         });
 
         this.socket.on('connect_error', (error) => {
             console.error('❌ Connection error:', error);
-            
-            // Check if we're on Vercel
-            const isVercel = window.location.hostname.includes('vercel.app');
-            
-            if (isVercel) {
-                const message = '⚠️ Vercel Limitation: WebSocket connections are not supported on Vercel serverless functions. Real-time collaboration will not work. For full functionality, deploy to Railway or Render.';
-                this.showNotification(message, 'error');
-                console.error('💡 Vercel serverless functions cannot maintain persistent WebSocket connections');
-                console.error('💡 This is a platform limitation, not a bug in your code');
-            } else {
-                this.showNotification('🌐 Connection error - check your network', 'error');
-            }
-            
+            this.showNotification('🌐 Connection error - check your network', 'error');
             this.updateConnectionStatus(false);
         });
     }
