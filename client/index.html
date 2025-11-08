@@ -11,15 +11,14 @@
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <h1 class="logo">🎨 Collaborative Canvas</h1>
+                <h1 class="logo">Collaborative Canvas</h1>
                 <div class="header-badge">
                     <span class="live-indicator"></span>
-                    <span>Live Collaboration</span>
+                    <span>Live</span>
                 </div>
             </div>
             <div class="user-info">
                 <div class="user-count-badge">
-                    <span class="user-icon">👥</span>
                     <span id="userCount">0 users online</span>
                 </div>
                 <div id="userId" class="user-id-badge"></div>
@@ -29,30 +28,30 @@
         <div class="main-content">
             <!-- Left Sidebar - Tools Panel -->
             <div class="sidebar">
-                <button class="sidebar-close" id="sidebarClose" aria-label="Close menu" style="display: none;">✕</button>
+                <button class="sidebar-close" id="sidebarClose" aria-label="Close menu" style="display: none;">×</button>
                 <div class="tools-panel">
-                    <h3>🛠️ Drawing Tools</h3>
+                    <h3>Drawing Tools</h3>
                     
                     <div class="tool-group">
                         <label>Tools:</label>
                         <div class="tools">
                             <button id="brushTool" class="tool active" data-tool="brush" title="Brush Tool (B)">
-                                🖌️ Brush
+                                Brush
                             </button>
                             <button id="eraserTool" class="tool" data-tool="eraser" title="Eraser Tool (E)">
-                                🧽 Eraser
+                                Eraser
                             </button>
                             <button id="rectangleTool" class="tool" data-tool="rectangle" title="Rectangle (R)">
-                                ⬜ Rectangle
+                                Rectangle
                             </button>
                             <button id="circleTool" class="tool" data-tool="circle" title="Circle (C)">
-                                ⭕ Circle
+                                Circle
                             </button>
                             <button id="lineTool" class="tool" data-tool="line" title="Line (L)">
-                                ➖ Line
+                                Line
                             </button>
                             <button id="textTool" class="tool" data-tool="text" title="Text (T)">
-                                📝 Text
+                                Text
                             </button>
                         </div>
                     </div>
@@ -86,13 +85,13 @@
                         <label>Actions:</label>
                         <div class="actions">
                             <button id="undoBtn" class="tool" title="Undo (Ctrl+Z)">
-                                ↩️ Undo
+                                Undo
                             </button>
                             <button id="redoBtn" class="tool" title="Redo (Ctrl+Y)">
-                                ↪️ Redo
+                                Redo
                             </button>
                             <button id="clearCanvas" class="tool danger" title="Clear entire canvas">
-                                🗑️ Clear
+                                Clear
                             </button>
                         </div>
                     </div>
@@ -101,14 +100,14 @@
                         <label>Persistence:</label>
                         <div class="actions">
                             <button id="saveCanvas" class="tool" title="Save current drawing">
-                                💾 Save
+                                Save
                             </button>
                             <button id="loadCanvas" class="tool" title="Load saved drawing">
-                                📂 Load
+                                Load
                             </button>
                             <input type="file" id="imageUpload" accept="image/*" style="display: none;">
                             <button id="uploadImage" class="tool" title="Upload image to canvas">
-                                🖼️ Image
+                                Image
                             </button>
                         </div>
                     </div>
@@ -116,7 +115,7 @@
 
                 <!-- Rooms Panel -->
                 <div class="users-panel">
-                    <h3>🏠 Rooms</h3>
+                    <h3>Rooms</h3>
                     <div class="room-controls">
                         <input type="text" id="roomNameInput" placeholder="Room name..." maxlength="20">
                         <button id="createRoom" class="tool">Create</button>
@@ -124,12 +123,12 @@
                     </div>
                     <div id="roomsList" class="users-list">
                         <div class="room-item active" data-room="default">
-                            <span>🏠 Default Room</span>
+                            <span>Default Room</span>
                             <span class="room-users">0</span>
                         </div>
                     </div>
                     
-                    <h3 style="margin-top: 20px;">👥 Online Users</h3>
+                    <h3 style="margin-top: 20px;">Online Users</h3>
                     <div id="usersList" class="users-list">
                         <!-- Users will be populated here -->
                     </div>
@@ -145,13 +144,13 @@
                     <!-- Drawing Instructions -->
                     <div class="drawing-instructions" id="instructions">
                         <div class="instruction-header">
-                            <span>💡 Quick Tips</span>
+                            <span>Quick Tips</span>
                             <button class="close-instructions" id="closeInstructions">×</button>
                         </div>
-                        <div class="instruction-item">🖱️ Click and drag to draw</div>
-                        <div class="instruction-item">👥 See others draw in real-time</div>
-                        <div class="instruction-item">⌨️ B=Brush, E=Eraser, 1-9=Size</div>
-                        <div class="instruction-item">🎨 Use color swatches for quick selection</div>
+                        <div class="instruction-item">Click and drag to draw</div>
+                        <div class="instruction-item">See others draw in real-time</div>
+                        <div class="instruction-item">B=Brush, E=Eraser, 1-9=Size</div>
+                        <div class="instruction-item">Use color swatches for quick selection</div>
                     </div>
                     
                     <!-- Drawing Stats -->
@@ -185,12 +184,8 @@
 
                 <!-- Quick Actions Bar -->
                 <div class="quick-actions">
-                    <button id="quickBrush" class="quick-action active" data-tool="brush" title="Brush">
-                        🖌️
-                    </button>
-                    <button id="quickEraser" class="quick-action" data-tool="eraser" title="Eraser">
-                        🧽
-                    </button>
+                    <button id="quickBrush" class="quick-action active" data-tool="brush" title="Brush">B</button>
+                    <button id="quickEraser" class="quick-action" data-tool="eraser" title="Eraser">E</button>
                     <div class="color-swatches">
                         <div class="color-swatch" style="background-color: #000000;" data-color="#000000" title="Black"></div>
                         <div class="color-swatch" style="background-color: #ff0000;" data-color="#ff0000" title="Red"></div>

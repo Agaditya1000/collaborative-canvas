@@ -732,7 +732,7 @@ class DrawingWebSocket {
         defaultRoomItem.className = 'room-item' + (this.currentRoom === 'default' ? ' active' : '');
         defaultRoomItem.setAttribute('data-room', 'default');
         defaultRoomItem.innerHTML = `
-            <span>🏠 Default Room</span>
+            <span>Default Room</span>
             <span class="room-users">?</span>
         `;
         defaultRoomItem.addEventListener('click', () => {
@@ -748,7 +748,7 @@ class DrawingWebSocket {
                     roomItem.className = 'room-item' + (this.currentRoom === roomId ? ' active' : '');
                     roomItem.setAttribute('data-room', roomId);
                     roomItem.innerHTML = `
-                        <span>🏠 ${roomId}</span>
+                        <span>${roomId}</span>
                         <span class="room-users">?</span>
                     `;
                     roomItem.addEventListener('click', () => {
