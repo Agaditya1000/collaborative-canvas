@@ -1,5 +1,7 @@
 # Real-Time Collaborative Drawing Canvas
 
+[🔗 Live Demo](https://collaborative-canvas-ozxo.onrender.com/)
+
 A multi-user drawing application where multiple people can draw simultaneously on the same canvas with real-time synchronization. Built with vanilla JavaScript, HTML5 Canvas, Node.js, and Socket.io.
 
 ## 🎯 Features
